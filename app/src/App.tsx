@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
 
 import { BASE } from './constants';
-import TeamSelector from './TeamSelect';
+import TeamSelector, { Team } from './TeamSelect';
 
 interface GamesResponse {
   games: Array<Game>
@@ -35,12 +36,19 @@ enum EventType {
   Goal = 19,
 }
 
-function Events(teamIndex: string, teamID: string) {
+interface Props {
+  team: Team | null
+}
+
+function Events(props: Props) {
   const [games, setGames] = useState<Game[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
 
   useEffect(() => {
-    fetch(`${BASE}/web-v1/games?current&teamID=${teamIndex}`).then((res) => {
+    if (!props.team?.index) {
+      return;
+    }
+    fetch(`${BASE}/web-v1/games?current&teamID=${props.team?.index}`).then((res) => {
       return res.json();
     })
     .then((data) => {
@@ -48,16 +56,16 @@ function Events(teamIndex: string, teamID: string) {
       console.log(games);
       setGames(games);
     });
-  }, [teamID]);
+  }, [props.team]);
 
   useEffect(() => {
     games.forEach((game) => {
-      fetch(`${BASE}/api/v1/gamesEvents?gameID=${game.gameID}`).then((res) => {
+      fetch(`${BASE}/api/v1/gameEvents?gameID=${game.gameID}`).then((res) => {
         return res.json();
       })
       .then((data) => {
         let newEvents;
-        if (game.awayTeamID == teamID) {
+        if (game.awayTeamID == props.team?.teamID) {
           newEvents = (data as GameEventsResponse).data.awayEvents;
         } else {
           newEvents = (data as GameEventsResponse).data.homeEvents;
@@ -66,18 +74,39 @@ function Events(teamIndex: string, teamID: string) {
         setEvents({...events, ...newEvents});
       });
     });
-  }, [teamIndex, teamID, games]);
+  }, [props.team, games]);
 
-  return ();
+  const columns: GridColDef[] = [
+    { field: 'timestamp', headerName: 'TS'},
+    { field: 'type', headerName: 'type'},
+    { field: 'thrower', headerName: 'Thrower'},
+  ];
+  const paginationModel = { page: 0, pageSize: 5 };
+
+  return (
+    <DataGrid
+      rows={events}
+      columns={columns}
+      initialState={{ pagination: { paginationModel } }}
+      pageSizeOptions={[5, 10]}
+    />
+  );
 }
 
 function App() {
+  const [team, setTeam] = useState<Team | null>(null);
+
+  function onTeamChange(team: Team): void {
+    console.log(team);
+    setTeam(team);
+  };
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <div> 
-          <TeamSelector />
+          <TeamSelector onChange={onTeamChange}/>
+          <Events team={team} />
         </div>
         <p>
           Edit <code>src/App.tsx</code> and save to reload.

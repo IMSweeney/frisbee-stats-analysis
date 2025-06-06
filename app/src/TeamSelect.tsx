@@ -12,18 +12,26 @@ interface TeamsResponse {
   data: Array<Team>
 }
 
-interface Team {
+export interface Team {
+  index: string,
   teamID: string,
   fullName: string,
 }
 
-export default function TeamSelector() {
+interface Props {
+  onChange: (team: Team) => void
+}
+
+export default function TeamSelector(props: Props) {
   const [teams, setTeams] = useState<Team[]>([]);
-  const [team, setTeam] = useState<string | null>(null);
+  const [team, setTeam] = useState<Team | null>(null);
 
   const handleChange = (event: SelectChangeEvent<string | null>) => {
-    console.log(event);
-    setTeam(event.target.value);
+    const index = parseInt(event.target.value || '0');
+    const team = {...teams[index], index: event.target.value || '0'};
+    console.log(team);
+    setTeam(team);
+    props.onChange(team);
   };
 
   useEffect(() => {
@@ -43,7 +51,7 @@ export default function TeamSelector() {
       <Select
         labelId="team-select-label"
         id="team-select"
-        value={team}
+        value={team?.index}
         label="Teams"
         onChange={handleChange}
       >

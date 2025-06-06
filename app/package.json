@@ -1,6 +1,6 @@
 {
   "name": "app",
-  "version": "0.1.2",
+  "version": "0.1.6",
   "homepage": "https://imsweeney.github.io/frisbee-stats-analysis",
   "private": true,
   "dependencies": {

@@ -19,7 +19,7 @@ export default function PassingChart(props: Props) {
         _nodes.set(event.thrower, {
           id: event.thrower,
           label: event.thrower,
-          size: 0
+          size: 1
         });
       }
       let node = _nodes.get(event.thrower);
@@ -33,24 +33,33 @@ export default function PassingChart(props: Props) {
           id: edgeId,
           source: event.thrower,
           target: event.receiver,
-          size: 0
+          // size: 1
         });
       }
       let edge = _edges.get(event.thrower);
       if (edge?.size) {
-        edge.size += 1;
+        // edge.size = Math.max(edge.size + 1, 10)
       }
     });
     setNodes(Array.from(_nodes.values()));
     setEdges(Array.from(_edges.values()));
   }, props.events);
 
-  return (
-    <GraphCanvas
-      sizingType='attribute'
-      sizingAttribute='size'
-      nodes={nodes}
-      edges={edges}
-    />
+  return props.events.length != 0 ? (
+    <div>
+      <GraphCanvas
+        // sizingType='attribute'
+        // sizingAttribute='size'
+        // minNodeSize={2}
+        // maxNodeSize={25}
+        nodes={nodes}
+        edges={edges}
+      />
+    </div>
+  ) :
+  (
+    <div>
+      <p>No data loaded</p>
+    </div>
   );
 }

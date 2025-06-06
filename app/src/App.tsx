@@ -104,6 +104,7 @@ function App() {
     console.log(team);
     setTeam(team);
   };
+
   return (
     <div className="App">
       <div> 
@@ -113,7 +114,6 @@ function App() {
       <div>
         <PassingChart events={events}/>
       </div>
-      <p>{team?.fullName}</p>
     </div>
   );
 }

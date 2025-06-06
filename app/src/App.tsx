@@ -5,6 +5,7 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 
 import { BASE } from './constants';
 import TeamSelector, { Team } from './TeamSelect';
+import PassingChart from './PassingChart';
 
 interface GamesResponse {
   games: Array<Game>
@@ -23,13 +24,14 @@ interface GameEventsResponse {
   }
 }
 
-interface Event {
+export interface Event {
   timestamp: number,
   type: number,
-  thrower: string,
+  thrower: string,  
+  receiver: string,
 }
 
-enum EventType {
+export enum EventType {
   DLine = 1,
   OLine = 2,
   Pull = 7,
@@ -39,61 +41,21 @@ enum EventType {
 }
 
 interface Props {
-  team: Team | null
+  events: Array<Event>
 }
 
-function Events(props: Props) {
-  const [games, setGames] = useState<Game[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
-
-  useEffect(() => {
-    if (!props.team?.index) {
-      return;
-    }
-    fetch(`${BASE}/web-v1/games?current&teamID=${props.team?.index + 1}`).then((res) => {
-      return res.json();
-    })
-    .then((data) => {
-      let games = (data as GamesResponse).games;
-      console.log(games);
-      setGames(games);
-      setEvents([]);
-    });
-  }, [props.team]);
-
-  useEffect(() => {
-    games.forEach((game) => {
-      fetch(`${BASE}/api/v1/gameEvents?gameID=${game.gameID}`).then((res) => {
-        return res.json();
-      })
-      .then((data) => {
-        let newEvents;
-        if (game.awayTeamID == props.team?.teamID) {
-          newEvents = (data as GameEventsResponse).data.awayEvents;
-        } else {
-          newEvents = (data as GameEventsResponse).data.homeEvents;
-        }
-        console.log(newEvents);
-        setEvents([...events, ...newEvents]);
-        console.log(events.length)
-      });
-    });
-  }, [props.team, games]);
-
+function EventsTable(props: Props) {
   const columns: GridColDef[] = [
     { field: 'timestamp'},
     { field: 'type'},
     { field: 'thrower'},
   ];
-  function getRowId(row: Event) {
-    return row.timestamp;
-  }
   const paginationModel = { page: 0, pageSize: 5 };
 
   return (
     <DataGrid
-      rows={events}
-      getRowId={getRowId}
+      rows={props.events}
+      getRowId={(_: Event) => crypto.randomUUID()}
       columns={columns}
       initialState={{ pagination: { paginationModel } }}
       pageSizeOptions={[5, 10, 100]}
@@ -103,6 +65,40 @@ function Events(props: Props) {
 
 function App() {
   const [team, setTeam] = useState<Team | null>(null);
+  const [games, setGames] = useState<Game[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+
+  useEffect(() => {
+    if (!team?.index) {
+      return;
+    }
+    fetch(`${BASE}/web-v1/games?current&teamID=${team?.index + 1}`).then((res) => {
+      return res.json();
+    })
+    .then((data) => {
+      let games = (data as GamesResponse).games;
+      console.log(games);
+      setGames(games);
+      setEvents([]);
+    });
+  }, [team]);
+
+  useEffect(() => {
+    Promise.all(games.map(
+      game => fetch(`${BASE}/api/v1/gameEvents?gameID=${game.gameID}`)
+      .then(res => res.json())
+    )).then(allEvents => {
+      let newEvents: Array<Event> = [];
+      allEvents.forEach((value, index) => {
+        if (games[index].awayTeamID == team?.teamID) {
+          newEvents = newEvents.concat((value as GameEventsResponse).data.awayEvents);
+        } else {
+          newEvents = newEvents.concat((value as GameEventsResponse).data.homeEvents);
+        }
+      })
+      setEvents(newEvents);
+    });
+  }, [games]);
 
   function onTeamChange(team: Team): void {
     console.log(team);
@@ -112,7 +108,10 @@ function App() {
     <div className="App">
       <div> 
         <TeamSelector onChange={onTeamChange}/>
-        <Events team={team} />
+        <EventsTable events={events} />
+      </div>
+      <div>
+        <PassingChart events={events}/>
       </div>
       <p>{team?.fullName}</p>
     </div>

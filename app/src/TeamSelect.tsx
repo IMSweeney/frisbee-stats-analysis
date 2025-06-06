@@ -43,7 +43,6 @@ export default function TeamSelector(props: Props) {
       teams.sort((a, b) => a.city.localeCompare(b.city));
       console.log(teams);
       setTeams(teams);
-      setTeam(teams[0]);
     });
   }, []);
 

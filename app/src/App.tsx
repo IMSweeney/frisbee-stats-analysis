@@ -24,7 +24,9 @@ interface GameEventsResponse {
 }
 
 interface Event {
-
+  timestamp: number,
+  type: number,
+  thrower: string,
 }
 
 enum EventType {
@@ -48,13 +50,14 @@ function Events(props: Props) {
     if (!props.team?.index) {
       return;
     }
-    fetch(`${BASE}/web-v1/games?current&teamID=${props.team?.index}`).then((res) => {
+    fetch(`${BASE}/web-v1/games?current&teamID=${props.team?.index + 1}`).then((res) => {
       return res.json();
     })
     .then((data) => {
       let games = (data as GamesResponse).games;
       console.log(games);
       setGames(games);
+      setEvents([]);
     });
   }, [props.team]);
 
@@ -71,24 +74,29 @@ function Events(props: Props) {
           newEvents = (data as GameEventsResponse).data.homeEvents;
         }
         console.log(newEvents);
-        setEvents({...events, ...newEvents});
+        setEvents([...events, ...newEvents]);
+        console.log(events.length)
       });
     });
   }, [props.team, games]);
 
   const columns: GridColDef[] = [
-    { field: 'timestamp', headerName: 'TS'},
-    { field: 'type', headerName: 'type'},
-    { field: 'thrower', headerName: 'Thrower'},
+    { field: 'timestamp'},
+    { field: 'type'},
+    { field: 'thrower'},
   ];
+  function getRowId(row: Event) {
+    return row.timestamp;
+  }
   const paginationModel = { page: 0, pageSize: 5 };
 
   return (
     <DataGrid
       rows={events}
+      getRowId={getRowId}
       columns={columns}
       initialState={{ pagination: { paginationModel } }}
-      pageSizeOptions={[5, 10]}
+      pageSizeOptions={[5, 10, 100]}
     />
   );
 }
@@ -102,24 +110,11 @@ function App() {
   };
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <div> 
-          <TeamSelector onChange={onTeamChange}/>
-          <Events team={team} />
-        </div>
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <div> 
+        <TeamSelector onChange={onTeamChange}/>
+        <Events team={team} />
+      </div>
+      <p>{team?.fullName}</p>
     </div>
   );
 }

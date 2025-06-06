@@ -13,9 +13,10 @@ interface TeamsResponse {
 }
 
 export interface Team {
-  index: string,
+  index: number,
   teamID: string,
   fullName: string,
+  city: string,
 }
 
 interface Props {
@@ -28,8 +29,7 @@ export default function TeamSelector(props: Props) {
 
   const handleChange = (event: SelectChangeEvent<string | null>) => {
     const index = parseInt(event.target.value || '0');
-    const team = {...teams[index], index: event.target.value || '0'};
-    console.log(team);
+    const team = {...teams[index], index: index};
     setTeam(team);
     props.onChange(team);
   };
@@ -40,8 +40,10 @@ export default function TeamSelector(props: Props) {
     })
     .then((data) => {
       let teams = (data as TeamsResponse).data;
+      teams.sort((a, b) => a.city.localeCompare(b.city));
       console.log(teams);
       setTeams(teams);
+      setTeam(teams[0]);
     });
   }, []);
 
@@ -51,7 +53,7 @@ export default function TeamSelector(props: Props) {
       <Select
         labelId="team-select-label"
         id="team-select"
-        value={team?.index}
+        value={team?.index.toString()}
         label="Teams"
         onChange={handleChange}
       >

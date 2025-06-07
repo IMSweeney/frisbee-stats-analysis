@@ -33,25 +33,27 @@ export default function PassingChart(props: Props) {
           id: edgeId,
           source: event.thrower,
           target: event.receiver,
-          // size: 1
+          size: 1
         });
       }
       let edge = _edges.get(event.thrower);
       if (edge?.size) {
-        // edge.size = Math.max(edge.size + 1, 10)
+        edge.size = Math.max(edge.size + 1, 10)
       }
     });
+    console.log(_nodes);
+    console.log(_edges);
     setNodes(Array.from(_nodes.values()));
     setEdges(Array.from(_edges.values()));
-  }, props.events);
+  }, [props.events]);
 
   return props.events.length != 0 ? (
-    <div>
+    <div style={{ position: "fixed", width: '100%', height: '75%'}}>
       <GraphCanvas
-        // sizingType='attribute'
-        // sizingAttribute='size'
-        // minNodeSize={2}
-        // maxNodeSize={25}
+        sizingType='attribute'
+        sizingAttribute='size'
+        minNodeSize={2}
+        maxNodeSize={25}
         nodes={nodes}
         edges={edges}
       />

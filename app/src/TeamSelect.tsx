@@ -52,7 +52,7 @@ export default function TeamSelector(props: Props) {
       <Select
         labelId="team-select-label"
         id="team-select"
-        value={team?.index.toString()}
+        value={team?.index.toString() || ''}
         label="Teams"
         onChange={handleChange}
       >

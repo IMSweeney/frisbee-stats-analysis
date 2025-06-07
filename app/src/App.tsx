@@ -107,13 +107,13 @@ function App() {
 
   return (
     <div className="App">
-      <div> 
+      <header> 
         <TeamSelector onChange={onTeamChange}/>
-        <EventsTable events={events} />
-      </div>
-      <div>
+        {/* <EventsTable events={events} /> */}
+      </header>
+      <main>
         <PassingChart events={events}/>
-      </div>
+      </main>
     </div>
   );
 }
